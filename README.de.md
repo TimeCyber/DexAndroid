@@ -223,4 +223,4 @@ Dieses Projekt dient **ausschließlich dem Lernen, der Lehre und autorisierter S
 
 ## License
 
-MIT (see `LICENSE` in the repo if present).
+MIT — see [`LICENSE`](./LICENSE).

@@ -223,4 +223,4 @@ Default `unpack-output/` (or `DEX_OUT_DIR`). **Do not commit dumps.**
 
 ## License
 
-MIT (see `LICENSE` in the repo if present).
+MIT — see [`LICENSE`](./LICENSE).

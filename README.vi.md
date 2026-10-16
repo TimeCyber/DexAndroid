@@ -223,4 +223,4 @@ Dự án này **chỉ dành cho học tập, giảng dạy và nghiên cứu b�
 
 ## License
 
-MIT (see `LICENSE` in the repo if present).
+MIT — see [`LICENSE`](./LICENSE).

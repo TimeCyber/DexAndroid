@@ -223,4 +223,4 @@ Bu proje **yalnızca öğrenme, öğretim ve yetkili güvenlik araştırması** 
 
 ## License
 
-MIT (see `LICENSE` in the repo if present).
+MIT — see [`LICENSE`](./LICENSE).

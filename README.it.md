@@ -223,4 +223,4 @@ Questo progetto è **solo per apprendimento, didattica e ricerca di sicurezza au
 
 ## License
 
-MIT (see `LICENSE` in the repo if present).
+MIT — see [`LICENSE`](./LICENSE).

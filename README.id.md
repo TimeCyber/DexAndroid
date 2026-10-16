@@ -223,4 +223,4 @@ Proyek ini **hanya untuk pembelajaran, pengajaran, dan riset keamanan yang diizi
 
 ## License
 
-MIT (see `LICENSE` in the repo if present).
+MIT — see [`LICENSE`](./LICENSE).

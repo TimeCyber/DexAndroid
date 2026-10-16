@@ -223,4 +223,4 @@ DexAndroid/
 
 ## License
 
-MIT（若仓库内存在 `LICENSE` 文件，以该文件为准）。
+MIT，见仓库根目录 [`LICENSE`](./LICENSE)。

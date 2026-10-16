@@ -223,4 +223,4 @@ This project is **only for learning, teaching, and authorized security research*
 
 ## License
 
-MIT (see `LICENSE` in the repo if present).
+MIT — see [`LICENSE`](./LICENSE).

@@ -223,4 +223,4 @@ Java와 baksmali jar/`BAKSMALI_JAR` 확인.
 
 ## License
 
-MIT (저장소에 `LICENSE`가 있으면 해당 파일 기준).
+MIT — [`LICENSE`](./LICENSE) 참고.

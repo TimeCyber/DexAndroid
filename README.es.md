@@ -223,4 +223,4 @@ Este proyecto es **solo para aprendizaje, enseñanza e investigación de segurid
 
 ## License
 
-MIT (see `LICENSE` in the repo if present).
+MIT — see [`LICENSE`](./LICENSE).

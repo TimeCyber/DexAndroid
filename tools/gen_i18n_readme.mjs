@@ -193,7 +193,7 @@ const T = {
     legal:
       "本项目**仅用于学习、教学与已授权的安全研究**。严禁将本工具用于任何违法犯罪活动，包括但不限于未授权访问、破解、盗版、攻击他人系统或侵犯知识产权。作者与贡献者不对任何滥用行为负责。使用即表示你已阅读并同意上述条款。",
     hLicense: "License",
-    license: "MIT（若仓库内存在 `LICENSE` 文件，以该文件为准）。",
+    license: "MIT，见仓库根目录 [`LICENSE`](./LICENSE)。",
     featHead: ["能力", "MCP 工具", "说明"],
     featRows: [
       ["设备列表", "`list_devices`", "ADB 已连接设备"],
@@ -305,7 +305,7 @@ T.en = {
   legal:
     "This project is **only for learning, teaching, and authorized security research**. It is strictly forbidden to use it for any criminal or illegal activity, including unauthorized access, cracking, piracy, attacking systems, or IP infringement. Authors and contributors are not liable for misuse. By using this software you agree to these terms.",
   hLicense: "License",
-  license: "MIT (see `LICENSE` in the repo if present).",
+  license: "MIT — see [`LICENSE`](./LICENSE).",
   featHead: ["Capability", "MCP tool", "Notes"],
   featRows: [
     ["Devices", "`list_devices`", "Connected ADB devices"],
@@ -414,7 +414,7 @@ T["zh-TW"] = cloneEn({
   legal:
     "本專案**僅供學習、教學與已授權安全研究**。嚴禁用於任何違法犯罪行為，包括未授權存取、破解、盜版、攻擊系統或侵害智慧財產權。作者與貢獻者不對濫用負責。使用即表示同意上述條款。",
   hLicense: "License",
-  license: "MIT（若倉庫內有 `LICENSE`，以其為準）。",
+  license: "MIT，見倉庫根目錄 [`LICENSE`](./LICENSE)。",
   featHead: ["能力", "MCP 工具", "說明"],
   featRows: T["zh-CN"].featRows,
   cmpHead: ["方案", "是否需要 Root", "適用場景"],
@@ -499,7 +499,7 @@ T.ja = cloneEn({
   hLegal: "法令遵守と免責",
   legal:
     "本プロジェクトは**学習・教育および許可されたセキュリティ研究のみ**を目的とします。不正アクセス、クラック、著作権侵害など違法行為への使用を固く禁じます。悪用について作者・貢献者は責任を負いません。利用により本条件に同意したものとみなします。",
-  license: "MIT（リポジトリに `LICENSE` がある場合はそれに従う）。",
+  license: "MIT — [`LICENSE`](./LICENSE) を参照。",
   featHead: ["機能", "MCP ツール", "説明"],
   cmpHead: ["方式", "Root?", "用途"],
   envHead: ["変数", "意味", "既定"],
@@ -581,7 +581,7 @@ T.ko = cloneEn({
   hLegal: "법적 고지 및 면책",
   legal:
     "본 프로젝트는 **학습·교육 및 승인된 보안 연구 전용**입니다. 무단 접근, 크래킹, 불법 복제, 시스템 공격, 지식재산권 침해 등 일체의 불법 행위에 사용하는 것을 엄격히 금지합니다. 오남용에 대해 저자와 기여자는 책임지지 않습니다. 사용 시 본 조건에 동의한 것으로 간주합니다.",
-  license: "MIT (저장소에 `LICENSE`가 있으면 해당 파일 기준).",
+  license: "MIT — [`LICENSE`](./LICENSE) 참고.",
   featHead: ["기능", "MCP 도구", "설명"],
   cmpHead: ["방식", "Root?", "용도"],
   envHead: ["변수", "의미", "기본값"],

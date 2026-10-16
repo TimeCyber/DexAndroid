@@ -223,4 +223,4 @@ Este projeto é **somente para aprendizado, ensino e pesquisa de segurança auto
 
 ## License
 
-MIT (see `LICENSE` in the repo if present).
+MIT — see [`LICENSE`](./LICENSE).

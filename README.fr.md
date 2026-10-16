@@ -223,4 +223,4 @@ Ce projet est **réservé à l’apprentissage, l’enseignement et la recherche
 
 ## License
 
-MIT (see `LICENSE` in the repo if present).
+MIT — see [`LICENSE`](./LICENSE).
