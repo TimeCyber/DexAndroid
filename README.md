@@ -155,11 +155,16 @@ DexAndroid/
 │   └── unpack/
 ├── dist/
 ├── examples/            # Damai / Huaxi sample smali.zip + docs
+├── .cursor/skills/      # Agent skill: full API/header/crypto analysis workflow
 ├── tools/               # baksmali / frida-server / BlackDex (local)
 ├── unpack-output/       # local dumps (gitignored)
 ├── package.json
 └── README.md
 ```
+
+### Agent skill (API analysis)
+
+After unpacking, use the project skill [`.cursor/skills/android-api-smali-analysis/SKILL.md`](./.cursor/skills/android-api-smali-analysis/SKILL.md) so the agent always recovers **headers, body, encrypt/decrypt methods, and keys** (smali / `.so` / server-delivered), not path-only notes.
 
 ---
 
