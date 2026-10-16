@@ -1,5 +1,7 @@
 # 示例：大麦 App
 
+> ⚠️ **仅用于学习与教学目的，禁止违法犯罪。** [主文档](../../README.md) · [English](../../README.en.md)
+
 - **来源**：设备 Frida 内存 dump → `dex_to_smali`
 - **包名参考**：常见为 `cn.damai`（以实际设备安装为准）
 - **smali**：[`smali.zip`](./smali.zip)（解压后即可用 `smali_search` / `smali_read_class` 分析）

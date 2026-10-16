@@ -1,8 +1,12 @@
 # DexAndroid
 
+**简体中文** · [繁體中文](./README.zh-TW.md) · [English](./README.en.md) · [日本語](./README.ja.md) · [한국어](./README.ko.md) · [Español](./README.es.md) · [Français](./README.fr.md) · [Deutsch](./README.de.md) · [Português](./README.pt-BR.md) · [Русский](./README.ru.md) · [العربية](./README.ar.md) · [हिन्दी](./README.hi.md) · [Bahasa Indonesia](./README.id.md) · [Tiếng Việt](./README.vi.md) · [ไทย](./README.th.md) · [Italiano](./README.it.md) · [Türkçe](./README.tr.md)
+
+> ⚠️ **仅用于学习与教学目的。** 禁止用于任何违法犯罪、未授权破解、侵权或绕过他人防护的行为。使用者须遵守所在国家/地区法律法规与目标应用服务条款；因滥用造成的后果由使用者自行承担。
+
 安卓脱壳 + smali 分析 **MCP Server**。在 Cursor / Claude 等客户端中通过工具调用完成：设备管理、加固检测、静态/免 Root/Root 脱壳、dex→smali、接口字符串检索。
 
-仓库：[https://github.com/TimeCyber/DexAndroid](https://github.com/TimeCyber/DexAndroid)
+Repo: [https://github.com/TimeCyber/DexAndroid](https://github.com/TimeCyber/DexAndroid)
 
 ---
 
@@ -14,7 +18,7 @@
 | 包名列表 | `list_packages` | 可按关键字过滤 |
 | 加固识别 | `detect_packer` | 360 / 腾讯 / 梆梆 / 爱加密 / 阿里聚安全等 |
 | 拉 APK | `pull_apk` | 从设备拉取已安装应用（含 split） |
-| 静态解包 | `static_unpack` | 解压 APK 提取 `classes*.dex`（加固多为壳 dex） |
+| 静态解包 | `static_unpack` | 解压 APK 提取 `classes*.dex` |
 | 免 Root 脱壳 | `blackdex_prepare` / `blackdex_pull` | BlackDex 内存 dump 后拉取 |
 | Root 脱壳 | `frida_prepare` / `frida_unpack` | 推送 frida-server + frida-dexdump |
 | 反编译 | `dex_to_smali` | baksmali 转 smali |
@@ -25,7 +29,7 @@
 | 方案 | 是否需要 Root | 适用场景 |
 | --- | --- | --- |
 | 静态解包 | 否 | 未加固，或只要壳/资源 |
-| BlackDex | 否 | 多数加固 App（设备上操作选 App） |
+| BlackDex | 否 | 多数加固 App |
 | Frida | **是** | 强加固 / 壳对抗，内存 dump 更完整 |
 
 ---
@@ -36,11 +40,9 @@
 - **Node.js** ≥ 18
 - **ADB**：加入 PATH，或设置 `ADB_PATH`
 - **Java 8+**（`dex_to_smali` 调用 baksmali）
-- 可选：
-  - [BlackDex](https://github.com/CodingGay/BlackDex/releases) APK（免 Root）
-  - 设备 Root + `frida-server`；本机 `pip install frida-tools frida-dexdump`（Root 方案）
+- 可选：[BlackDex](https://github.com/CodingGay/BlackDex/releases) APK；设备 Root + `frida-server`；本机 `pip install frida-tools frida-dexdump`
 
-将 baksmali fat jar / frida-server / BlackDex 放到本地 `tools/`（该目录大文件默认不进 Git，见 `.gitignore`）。
+将 baksmali fat jar / frida-server / BlackDex 放到本地 `tools/`（大文件默认不进 Git，见 `.gitignore`）。
 
 ---
 
@@ -53,14 +55,14 @@ npm install
 npm run build
 ```
 
-启动 MCP（stdio，供客户端拉起）：
+启动 MCP（stdio，供客户端拉起）:
 
 ```bash
 npm start
-# 等价于: node dist/index.js
+# node dist/index.js
 ```
 
-开发模式（先编译再启动）：
+开发模式（先编译再启动）:
 
 ```bash
 npm run dev
@@ -87,10 +89,7 @@ npm run dev
 }
 ```
 
-保存后重启 Cursor / 重载 MCP。在对话里可直接让 Agent 调用上述工具，例如：
-
-- 「列出设备并检测 `cn.xxx` 的加固」
-- 「对本地 `xxx.apk` 做 static_unpack，再 dex_to_smali，搜索登录接口」
+保存后重启 Cursor / 重载 MCP。例如：「列出设备并检测加固」「对本地 apk 做 static_unpack，再 dex_to_smali，搜索登录接口」。
 
 ---
 
@@ -119,20 +118,20 @@ npm run dev
 ### 2. 免 Root（BlackDex）
 
 1. `list_devices`。
-2. `blackdex_prepare`，传入 `blackdexApkPath`（本机 BlackDex APK）。
+2. `blackdex_prepare`，传入 `blackdexApkPath`。
 3. 在手机 BlackDex 界面选择目标应用并脱壳。
-4. `blackdex_pull`，传入 `targetPkg`，把 dump 拉到 `DEX_OUT_DIR`。
+4. `blackdex_pull`，传入 `targetPkg`。
 5. `dex_to_smali` → 再 `smali_*` 分析。
 
 ### 3. Root（Frida）
 
 1. 设备已 Root（如 Magisk），`adb` 可用。
-2. `frida_prepare`：推送并启动 `tools/frida-server`（可用 `serverLocalPath` 指定）。
-3. 本机已安装匹配版本的 `frida` / `frida-dexdump`（建议 16.x 与 server 一致）。
+2. `frida_prepare`：推送并启动 `tools/frida-server`。
+3. 本机已安装匹配版本的 `frida` / `frida-dexdump`（建议 16.x）。
 4. `frida_unpack`：传 `pkg`，建议 `spawn: true`、`deepSearch: true`。
 5. 对输出目录 `dex_to_smali` 后分析。
 
-若 Frida 17 附加失败，可降级本机 frida-tools 与设备 frida-server 到同一 16.x 版本；部分机型需临时 `setenforce 0`。
+若 Frida 17 附加失败，可降级到同一 16.x；部分机型需临时 `setenforce 0`。
 
 ### 4. smali 分析示例
 
@@ -148,17 +147,17 @@ smali_read_class    smaliDir=.../smali  className=com.example.api.ApiService
 
 ```text
 DexAndroid/
-├── src/                 # TypeScript 源码（MCP server）
-│   ├── index.ts         # 工具注册与入口
+├── src/                 # MCP server (TypeScript)
+│   ├── index.ts
 │   ├── adb.ts
 │   ├── detect.ts
 │   ├── smali.ts
-│   └── unpack/          # static / blackdex / frida
-├── dist/                # tsc 编译输出（npm run build）
-├── examples/            # 反编译示例（大麦 / 华西妇幼 smali.zip + 文档）
-├── tools/               # 本地放置 baksmali / frida-server / BlackDex（默认不入库）
-├── unpack-output/       # 脱壳输出（默认不入库）
-├── mock-client/         # 可选：大麦流程本地 Mock 演示（见 mock-client/README.md）
+│   └── unpack/
+├── dist/
+├── examples/            # Damai / Huaxi sample smali.zip + docs
+├── tools/               # baksmali / frida-server / BlackDex (local)
+├── unpack-output/       # local dumps (gitignored)
+├── mock-client/
 ├── package.json
 └── README.md
 ```
@@ -167,12 +166,12 @@ DexAndroid/
 
 ## 反编译示例
 
-仓库 [`examples/`](./examples/) 提供两套可下载的示例产物（smali 为 zip，避免直接提交海量小文件）：
+仓库 [`examples/`](./examples/) 提供两套可下载示例（smali 为 zip）：
 
 | 示例 | 路径 | 内容 |
 | --- | --- | --- |
-| 大麦 | [`examples/damai/`](./examples/damai/) | Frida smali 压缩包 + API / 选座 / 登录参数文档 |
-| 华西妇幼 | [`examples/huaxi/`](./examples/huaxi/) | 静态解包 smali 压缩包（包名 `info.cd120.two`） |
+| 大麦 | [`examples/damai/`](./examples/damai/) | Frida smali 压缩包 + API / 选座 / 登录文档 |
+| 华西妇幼 | [`examples/huaxi/`](./examples/huaxi/) | 静态解包 smali 压缩包（`info.cd120.two`） |
 
 解压后即可对目录执行 `smali_list_classes` / `smali_search` / `smali_read_class`。
 
@@ -180,25 +179,25 @@ DexAndroid/
 
 ## MCP 工具参数速查
 
-| 工具 | 常用参数 |
+| Tool | Params |
 | --- | --- |
-| `detect_packer` | `apkPath` 或 `pkg`，可选 `serial` |
-| `pull_apk` | `pkg`，可选 `outDir` / `serial` |
-| `static_unpack` | `apkPath` 或 `pkg`，可选 `outDir` |
-| `blackdex_prepare` | `blackdexApkPath`，可选 `serial` |
-| `blackdex_pull` | `targetPkg`，可选 `outDir` / `serial` |
-| `frida_prepare` | 可选 `serial` / `serverLocalPath` |
-| `frida_unpack` | `pkg`，可选 `spawn` / `deepSearch` / `outDir` |
-| `dex_to_smali` | `dexInput`（文件或目录），可选 `outDir` |
-| `smali_list_classes` | `smaliDir`，可选 `keyword` |
-| `smali_read_class` | `smaliDir`，`className`（`com.foo.Bar` 或路径） |
-| `smali_search` | `smaliDir`，`pattern`，可选 `flags` / `maxResults` |
+| `detect_packer` | `apkPath` or `pkg`, optional `serial` |
+| `pull_apk` | `pkg`, optional `outDir` / `serial` |
+| `static_unpack` | `apkPath` or `pkg`, optional `outDir` |
+| `blackdex_prepare` | `blackdexApkPath`, optional `serial` |
+| `blackdex_pull` | `targetPkg`, optional `outDir` / `serial` |
+| `frida_prepare` | optional `serial` / `serverLocalPath` |
+| `frida_unpack` | `pkg`, optional `spawn` / `deepSearch` / `outDir` |
+| `dex_to_smali` | `dexInput`, optional `outDir` |
+| `smali_list_classes` | `smaliDir`, optional `keyword` |
+| `smali_read_class` | `smaliDir`, `className` |
+| `smali_search` | `smaliDir`, `pattern`, optional `flags` / `maxResults` |
 
 ---
 
 ## 可选：Mock 演示客户端
 
-`mock-client/` 为独立小服务，用于按文档形态演示「登录 → 选座 → 下单」本地 Mock 网关，**不请求真实线上业务**。详见 [mock-client/README.md](./mock-client/README.md)。
+`mock-client/` 为独立小服务，演示「登录 → 选座 → 下单」本地 Mock，**不请求真实线上业务**。详见 [mock-client/README.md](./mock-client/README.md)。
 
 ```bash
 cd mock-client
@@ -225,16 +224,18 @@ npm start
 保持 `frida-server` 与本机 `frida` 主版本一致；必要时用 16.x。
 
 **Q: 输出目录在哪？**  
-默认 `unpack-output/`（或 `DEX_OUT_DIR`）。该目录含 APK/dump，**请勿提交到 Git**。
+默认 `unpack-output/`（或 `DEX_OUT_DIR`）。**请勿提交到 Git**。
 
 ---
 
-## 合规说明
+## 合规与免责声明
 
-本工具仅用于**自有应用、已授权安全审计、教学研究**等合法场景。请遵守当地法律与目标应用服务条款，禁止用于未授权破解或侵权。
+本项目**仅用于学习、教学与已授权的安全研究**。严禁将本工具用于任何违法犯罪活动，包括但不限于未授权访问、破解、盗版、攻击他人系统或侵犯知识产权。作者与贡献者不对任何滥用行为负责。使用即表示你已阅读并同意上述条款。
+
+> ⚠️ **仅用于学习与教学目的。** 禁止用于任何违法犯罪、未授权破解、侵权或绕过他人防护的行为。使用者须遵守所在国家/地区法律法规与目标应用服务条款；因滥用造成的后果由使用者自行承担。
 
 ---
 
 ## License
 
-MIT（若后续补充 `LICENSE` 文件以仓库内文件为准）。
+MIT（若仓库内存在 `LICENSE` 文件，以该文件为准）。
