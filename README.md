@@ -155,12 +155,26 @@ DexAndroid/
 │   ├── smali.ts
 │   └── unpack/          # static / blackdex / frida
 ├── dist/                # tsc 编译输出（npm run build）
+├── examples/            # 反编译示例（大麦 / 华西妇幼 smali.zip + 文档）
 ├── tools/               # 本地放置 baksmali / frida-server / BlackDex（默认不入库）
 ├── unpack-output/       # 脱壳输出（默认不入库）
 ├── mock-client/         # 可选：大麦流程本地 Mock 演示（见 mock-client/README.md）
 ├── package.json
 └── README.md
 ```
+
+---
+
+## 反编译示例
+
+仓库 [`examples/`](./examples/) 提供两套可下载的示例产物（smali 为 zip，避免直接提交海量小文件）：
+
+| 示例 | 路径 | 内容 |
+| --- | --- | --- |
+| 大麦 | [`examples/damai/`](./examples/damai/) | Frida smali 压缩包 + API / 选座 / 登录参数文档 |
+| 华西妇幼 | [`examples/huaxi/`](./examples/huaxi/) | 静态解包 smali 压缩包（包名 `info.cd120.two`） |
+
+解压后即可对目录执行 `smali_list_classes` / `smali_search` / `smali_read_class`。
 
 ---
 
