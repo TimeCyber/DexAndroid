@@ -1,6 +1,6 @@
 # 示例：华西妇幼 App
 
-> ⚠️ **仅用于学习与教学目的，禁止违法犯罪。** [主文档](../../README.md) · [English](../../README.en.md)
+> ⚠️ **仅用于学习与教学目的，禁止违法犯罪。** [English](../../README.md) · [简体中文](../../README.zh-CN.md)
 
 - **来源**：本地 APK 静态解包 → `dex_to_smali`
 - **包名**：`info.cd120.two`

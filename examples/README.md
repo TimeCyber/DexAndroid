@@ -1,8 +1,8 @@
 # 反编译示例
 
-> ⚠️ **仅用于学习与教学目的。** 禁止用于违法犯罪、未授权破解或侵权。详见主文档合规声明：[README.md](../README.md) · [English](../README.en.md)
+> ⚠️ **仅用于学习与教学目的。** 禁止用于违法犯罪、未授权破解或侵权。详见主文档合规声明：[English](../README.md) · [简体中文](../README.zh-CN.md)
 
-多语言说明：[简体中文](../README.md) · [English](../README.en.md) · [日本語](../README.ja.md) · [更多语言…](../README.en.md)
+多语言说明：[English](../README.md) · [简体中文](../README.zh-CN.md) · [日本語](../README.ja.md) · [更多语言…](../README.md)
 
 本目录收录两款 App 的脱壳 / 反编译示例产物（**smali 压缩包 + 分析文档**），便于对照 MCP 工具链的实际输出。
 

@@ -4,9 +4,9 @@ import path from "path";
 const ROOT = path.resolve("e:/DexAndroid");
 
 const langs = [
-  { code: "zh-CN", file: "README.md", label: "简体中文" },
+  { code: "en", file: "README.md", label: "English" },
+  { code: "zh-CN", file: "README.zh-CN.md", label: "简体中文" },
   { code: "zh-TW", file: "README.zh-TW.md", label: "繁體中文" },
-  { code: "en", file: "README.en.md", label: "English" },
   { code: "ja", file: "README.ja.md", label: "日本語" },
   { code: "ko", file: "README.ko.md", label: "한국어" },
   { code: "es", file: "README.es.md", label: "Español" },
