@@ -4,7 +4,7 @@
 
 > ⚠️ **For learning and teaching purposes only.** Do **not** use this project for any illegal activity, unauthorized cracking, copyright infringement, or bypassing third-party protections. You must follow local laws and the target app’s terms. You are solely responsible for misuse.
 
-Android unpacking + smali analysis **MCP Server**. Use from Cursor / Claude to manage devices, detect packers, unpack (static / BlackDex / Frida), convert dex→smali, and search API strings.
+Android unpacking + smali analysis **MCP Server**. Use from Cursor / Codex / Claude Code to manage devices, detect packers, unpack (static / BlackDex / Frida), convert dex→smali, and search API strings.
 
 Repo: [https://github.com/TimeCyber/DexAndroid](https://github.com/TimeCyber/DexAndroid)
 
@@ -155,16 +155,34 @@ DexAndroid/
 │   └── unpack/
 ├── dist/
 ├── examples/            # Damai / Huaxi sample smali.zip + docs
-├── .cursor/skills/      # Agent skill: full API/header/crypto analysis workflow
+├── skills/              # Canonical agent skills (edit here, then sync)
+├── .cursor/skills/      # Cursor copy
+├── .agents/skills/      # Codex copy
+├── .claude/skills/      # Claude Code copy
 ├── tools/               # baksmali / frida-server / BlackDex (local)
 ├── unpack-output/       # local dumps (gitignored)
 ├── package.json
 └── README.md
 ```
 
-### Agent skill (API analysis)
+### Agent skills (Cursor / Codex / Claude Code)
 
-After unpacking, use the project skill [`.cursor/skills/android-api-smali-analysis/SKILL.md`](./.cursor/skills/android-api-smali-analysis/SKILL.md) so the agent always recovers **headers, body, encrypt/decrypt methods, and keys** (smali / `.so` / server-delivered), not path-only notes.
+After unpacking, use **`android-api-smali-analysis`** so the agent recovers **headers, body, encrypt/decrypt methods, and keys** (smali / `.so` / server-delivered), not path-only notes.
+
+| Client | Skill path |
+| --- | --- |
+| Canonical | [`skills/android-api-smali-analysis/SKILL.md`](./skills/android-api-smali-analysis/SKILL.md) |
+| Cursor | [`.cursor/skills/android-api-smali-analysis/`](./.cursor/skills/android-api-smali-analysis/) |
+| Codex | [`.agents/skills/android-api-smali-analysis/`](./.agents/skills/android-api-smali-analysis/) |
+| Claude Code | [`.claude/skills/android-api-smali-analysis/`](./.claude/skills/android-api-smali-analysis/) (`/android-api-smali-analysis`) |
+
+Edit the canonical file, then sync copies:
+
+```bash
+node tools/sync-skills.mjs
+```
+
+See [`skills/README.md`](./skills/README.md).
 
 ---
 

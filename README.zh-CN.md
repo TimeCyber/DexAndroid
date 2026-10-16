@@ -155,11 +155,28 @@ DexAndroid/
 │   └── unpack/
 ├── dist/
 ├── examples/            # Damai / Huaxi sample smali.zip + docs
+├── skills/              # 规范 skill 源（改这里再 sync）
+├── .cursor/skills/      # Cursor
+├── .agents/skills/      # Codex
+├── .claude/skills/      # Claude Code
 ├── tools/               # baksmali / frida-server / BlackDex (local)
 ├── unpack-output/       # local dumps (gitignored)
 ├── package.json
 └── README.md
 ```
+
+### Agent Skill（多客户端）
+
+脱壳后使用 **`android-api-smali-analysis`**，强制还原请求头 / Body / 加解密与密钥（smali / `.so` / 服务端下发），禁止只写 path。
+
+| 客户端 | 路径 |
+| --- | --- |
+| 规范源 | [`skills/android-api-smali-analysis/SKILL.md`](./skills/android-api-smali-analysis/SKILL.md) |
+| Cursor | [`.cursor/skills/`](./.cursor/skills/android-api-smali-analysis/) |
+| Codex | [`.agents/skills/`](./.agents/skills/android-api-smali-analysis/) |
+| Claude Code | [`.claude/skills/`](./.claude/skills/android-api-smali-analysis/)（可 `/android-api-smali-analysis`） |
+
+修改规范源后执行：`node tools/sync-skills.mjs`。详见 [`skills/README.md`](./skills/README.md)。
 
 ---
 

@@ -958,22 +958,89 @@ api=<mtop.xxx>&v=1.0&data={...}&...
 
 ## 10. 关键接口完整请求/响应（smali 反编译）
 
-> 来源：`frida/` dump → baksmali（`OrderFirstPayInfoRequest`、`MtopSeat*`、`UltronParamsMaker`、`PasswordLoginRequest`、`AliMeToken*`、`MtopCalcTicketPriceRequest*` 等）。  
-> `data` 由 Request 类 **public 字段** 序列化为 JSON；网关还会附带 `appKey/t/sign/sid/ttid/utdid` 等（MTOP SDK 自动填，下表不逐字段展开）。  
-> 示例中的业务 ID 为占位；`sign`/`sid`/`cookie` 需真实会话。
+> 来源：`unpack-output/106/frida-smali`（Frida dump → baksmali）。  
+> 按 `android-api-smali-analysis` skill：除 path/body 外，必须写清**请求头、加解密/签名、密钥材料**。  
+> 示例业务 ID 为占位；网关 `x-sign` / Cookie 需真实设备会话。
 
-### 10.0 通用 POST 形态
+### 10.0 通用：服务端入口 / 请求头 / 加解密
+
+#### 10.0.1 服务端入口
+
+| 项 | 值 | 证据 |
+| --- | --- | --- |
+| 协议 | 阿里 **MTOP** | 全站 `mtop.*` Request |
+| Method | **POST** | `Content-Type: application/x-www-form-urlencoded` |
+| Path | `/gw/<api>/<v>/` | 如 `/gw/mtop.damai.trade.order.create/1.0/` |
+| Host（正式） | `mtop.damai.cn` | `DMQueryKey.setDomain` |
+| Host（预发） | `pre-mtop.damai.cn` | 同上 |
+| Host（日常） | `daliy-mtop.damai.cn` | 同上（源码拼写） |
+| Body 形态 | `data=<urlencode(json)>&type=originaljson` | Request public 字段 → JSON |
 
 ```http
 POST https://mtop.damai.cn/gw/<api>/<v>/ HTTP/1.1
 Host: mtop.damai.cn
 Content-Type: application/x-www-form-urlencoded;charset=UTF-8
-Cookie: cookie2=...; _m_h5_tk=...; ...
+Cookie: cookie2=...; _m_h5_tk=...; unb=...; ...
+User-Agent: <MTOP/App UA>
+
+# 网关公共头（由 MTOP SDK + 无线保镖注入，业务 smali 不手写）
+x-appkey: <appKey>
+x-t: <unix-ms>
+x-sign: <SecurityGuard 签名>
+x-sid: <登录后 sid，NEED_SESSION 时>
+x-uid: <userId>
+x-utdid: <设备 utdid>
+x-ttid: <渠道 ttid>
+x-devid: <可选>
+x-mini-wua / x-sgext / x-umt: <风控 WUA 相关，部分接口>
+x-features / x-app-ver / x-pv: <SDK 特性与版本>
 
 data=%7B...%7D&type=originaljson
 ```
 
-环境域名（`DMQueryKey`）：正式 `mtop.damai.cn`；预发 `pre-mtop.damai.cn`；日常 `daliy-mtop.damai.cn`。
+#### 10.0.2 请求头（Headers）
+
+| Header | 值/来源 | 是否签名/加密 | 注入位置 |
+| --- | --- | --- | --- |
+| `Content-Type` | `application/x-www-form-urlencoded;charset=UTF-8` | 否 | MTOP 客户端 |
+| `Cookie` | `cookie2` / `_m_h5_tk` / 登录会话等 | 会话凭证 | 登录成功后落盘；`NEED_SESSION=true` 必带 |
+| `x-appkey` | 大麦 AppKey（资源 `appkey_release` / MtopConfig） | 参与签名输入 | MTOP SDK |
+| `x-t` | 毫秒时间戳 | 参与签名输入 | MTOP SDK |
+| `x-sign` | 网关签名 | **是（核心）** | 无线保镖 `SecurityGuard` / MTOP InnerSign |
+| `x-sid` / `x-uid` | 登录会话 | 鉴权 | Session 管理 |
+| `x-utdid` / `x-ttid` | 设备 / 渠道 | 参与签名输入 | UTDevice / 配置 |
+| `x-mini-wua` 等 | WUA 风控串 | 风控签名 | `SecurityGuardManagerWraper.getWUA` / `useWua()` |
+| 业务 Header AES | **无** | 不适用 | 已搜 `encryptParameter` / 业务 `Cipher`：大麦下单链**无**华西式 Header 密文 |
+
+dump 内可见的 header 字符串（分析/埋点侧，非完整 MTOP 表）：`x-appkey`、`x-app-ver`、`x-utdid`、`x-uid`、`x-pv`、`x-ttid`、`x-t`（`tb/bj6`、analytics）。  
+**完整 `x-sign` 常量表所在 `mtopsdk.*` 实现未打进本 Frida 子集**（仅有 `Lmtopsdk/mtop/stat/MtopMonitor` 引用），故网关头以「SDK 惯例 + SecurityGuard」还原。
+
+#### 10.0.3 加密 / 签名 / 密钥
+
+| 层级 | 有无 | 说明 |
+| --- | --- | --- |
+| 业务 Body AES/RSA | **无** | 登录/详情/选座/下单 `data` 均为**明文 JSON**（可 URL 编码） |
+| 业务 Header 密文 | **无** | 不同于华西 `encryptParameter` |
+| AccessToken 业务 sign | **有** | 仅 `mtop.damai.mxm.user.accesstoken.get` 的 data.`sign` |
+| 网关 MTOP `x-sign` | **有（全局）** | 所有 `/gw/` 请求；算法在无线保镖 so，**非**业务 smali 明文 |
+| WUA / ecode | **有（条件）** | `NEED_ECODE` / `useWua()` 的接口（如 precheck、create 链） |
+| 登录密码 | 可选加密 | `pwdEncrypted`；默认 `false` 时 password 明文进 data（仍走 HTTPS + x-sign） |
+| 第三方 SDK AES | 忽略 | 友盟/推送等非购票链路 |
+
+**AccessToken 业务签名（可复现）：**
+
+- 来源类型：硬编码  
+- 密钥明文：`166432f6316846fab25e5c39e9e57d71`  
+- 证据：`cn.damai.im.request.AliMeTokenRequest.toSignParamMap`  
+- 参与字段（LinkedHashMap 顺序）：`userCode` → `from` → `v` → `timestamp` → `key`  
+- 公式（与类注释/常规一致）：`sign = MD5(userCode + from + v + timestamp + key)`（小写 hex；若线上不符再按「按序拼接 map 的 value」核对）  
+- 密文落点：data 字段 `sign`；body 其余字段仍明文  
+
+**网关 `x-sign`（不可从业务 smali 复现明文密钥）：**
+
+- 来源类型：Native / 无线保镖（`com.alibaba.wireless.security.open.SecurityGuardManager`、`SecurityGuardManagerWraper`）  
+- 已搜：`x-sign`、`InnerSign`、`ProtocolParamBuilder`、`mtopsdk/mtop/**` 实现类 → **本 dump 无完整实现**  
+- 文档结论：需真机抓包拿 `x-sign`，或授权环境 hook `ISign` / SecurityGuard；**不得伪造可复现密钥**  
 
 ---
 
@@ -981,22 +1048,27 @@ data=%7B...%7D&type=originaljson
 
 | 项 | 值 |
 | --- | --- |
-| 类 | `PasswordLoginRequest` ← `LoginRequestBase` |
+| 类 | `PasswordLoginRequest` ← `LoginRequestBase` ← `MemberRequestBase` |
 | API（正式） | `mtop.taobao.alibabaMLoginService.login`（另有 `com.taobao.mtop.mloginService.login`） |
-| 需登录态 | 否（本接口用于建会话） |
+| v | `1.0`（SDK 默认） |
+| 需登录态 | 否（建会话） |
+| Body 加密 | 无（`pwdEncrypted=false` 时密码明文在 JSON 内） |
+| 网关签名 | 有（`x-sign` + 可选 WUA） |
+
+**请求头：** 见 §10.0.2；登录前通常无有效 `x-sid`，成功后 Cookie/`sid` 由 Havana 回写。
 
 **data 字段（请求）：**
 
 | 字段 | 类型 | 说明 |
 | --- | --- | --- |
 | `loginId` | string | 账号/手机号 |
-| `password` | string | 密码（可加密） |
+| `password` | string | 密码 |
 | `pwdEncrypted` | bool | 默认 `false` |
 | `loginType` | string | 默认 `"taobao"` |
 | `hid` | string | 可选 |
 | `sid` | string | 续登时可能带 |
-| `deviceName` | string | 如 `Xiaomi(MI 8)` |
-| `deviceTokenKey` / `deviceTokenSign` | string | 设备 token |
+| `deviceName` | string | `Brand(Model)`，如 `Xiaomi(MI 8)` |
+| `deviceTokenKey` / `deviceTokenSign` | string | 设备 token（SecurityGuard） |
 | `useDeviceToken` | bool | 默认 `true` |
 | `t` | long | 时间戳 |
 | `snsToken` / `biometricId` 等 | string | 三方/生物 |
@@ -1005,12 +1077,19 @@ data=%7B...%7D&type=originaljson
 
 ```http
 POST https://mtop.damai.cn/gw/mtop.taobao.alibabaMLoginService.login/1.0/ HTTP/1.1
+Host: mtop.damai.cn
 Content-Type: application/x-www-form-urlencoded;charset=UTF-8
+x-appkey: <appKey>
+x-t: 1710000000000
+x-sign: <SecurityGuard>
+x-utdid: <utdid>
+x-ttid: <ttid>
 
 data={"loginId":"13800000000","password":"<pwd>","pwdEncrypted":false,"loginType":"taobao","deviceName":"Xiaomi(MI 8)","useDeviceToken":true,"t":1710000000000}&type=originaljson
 ```
 
-**响应（推断，Havana/mLogin 通用壳）：** `api` / `v` / `ret` / `data`；成功时 `data` 内含会话相关字段（`sid`、token、cookie 线索等，以抓包为准）。
+**响应（Havana/mLogin 壳）：** `api` / `v` / `ret` / `data`；成功时会话字段（`sid`、token、cookie 线索）以抓包为准。  
+**调用链：** 登录 UI → `UserLoginServiceImpl` → MTOP →（可选）`applySsoToken` / `getWapLoginCookies` → §10.2/10.3。
 
 ---
 
@@ -1020,7 +1099,11 @@ data={"loginId":"13800000000","password":"<pwd>","pwdEncrypted":false,"loginType
 | --- | --- |
 | 类 | `AliMeTokenRequestV2` |
 | v | `1.0` |
-| NEED_ECODE / NEED_SESSION | **true / true**（需已登录） |
+| NEED_ECODE / NEED_SESSION | **true / true** |
+| Body 加密 | 无 |
+| 业务 sign | 无（与 AccessToken 不同） |
+
+**请求头：** 必须带登录 Cookie / `x-sid`；其余同 §10.0.2。
 
 **data 字段：**
 
@@ -1031,8 +1114,14 @@ data={"loginId":"13800000000","password":"<pwd>","pwdEncrypted":false,"loginType
 
 ```http
 POST https://mtop.damai.cn/gw/mtop.damai.mxm.user.token.get/1.0/ HTTP/1.1
+Host: mtop.damai.cn
 Content-Type: application/x-www-form-urlencoded;charset=UTF-8
-Cookie: <登录后 Cookie / sid>
+Cookie: <登录后 Cookie>
+x-appkey: <appKey>
+x-t: <ts>
+x-sign: <SecurityGuard>
+x-sid: <sid>
+x-uid: <uid>
 
 data={"loginStateType":"1","xiaoMiType":"1"}&type=originaljson
 ```
@@ -1041,7 +1130,7 @@ data={"loginStateType":"1","xiaoMiType":"1"}&type=originaljson
 
 | 字段 | 类型 | 说明 |
 | --- | --- | --- |
-| `result` | string | Token 字符串（业务侧取值） |
+| `result` | string | Token 字符串 |
 
 ```json
 {
@@ -1060,28 +1149,47 @@ data={"loginStateType":"1","xiaoMiType":"1"}&type=originaljson
 | --- | --- |
 | 类 | `AliMeTokenRequest` |
 | v | `1.0` |
-| NEED_ECODE / SESSION | false / false（类声明如此；实际常仍带 Cookie） |
+| NEED_ECODE / SESSION | false / false（类声明；实际常仍带 Cookie） |
+| Body 业务加密 | **无**；另有 **data.sign** |
 
-**data 字段：** `userCode`、`from`、`v`、`timestamp`、`sign`（由 `userCode+from+v+timestamp+key` 签名，`key` 硬编码于客户端）
+#### 加密与签名（本接口）
+
+| 项 | 内容 |
+| --- | --- |
+| 有无 / 触发 | 每次请求必算 `sign` |
+| 算法 | MD5（UTF-8 拼接后摘要） |
+| **密钥明文** | `166432f6316846fab25e5c39e9e57d71` |
+| 密钥来源 | 硬编码（`toSignParamMap` 中 `key`） |
+| 密钥证据 | `cn/damai/im/request/AliMeTokenRequest.smali` |
+| 公式 | `sign = MD5(userCode + from + v + timestamp + "166432f6316846fab25e5c39e9e57d71")` |
+| 密文落点 | data.`sign`；其余 data 明文 |
 
 ```http
 POST https://mtop.damai.cn/gw/mtop.damai.mxm.user.accesstoken.get/1.0/ HTTP/1.1
+Host: mtop.damai.cn
 Content-Type: application/x-www-form-urlencoded;charset=UTF-8
+x-appkey: <appKey>
+x-t: <ts>
+x-sign: <SecurityGuard>
 
-data={"userCode":"<uid>","from":"<from>","v":"1.0","timestamp":"1710000000","sign":"<md5-or-sign>"}&type=originaljson
+data={"userCode":"<uid>","from":"<from>","v":"1.0","timestamp":"1710000000","sign":"<md5>"}&type=originaljson
 ```
 
 **响应：** 同 `AliMeTokenInfo.result`。
 
 ---
 
-### 10.4 项目详情 `mtop.damai.item.detail.getdetail`
+### 10.4 项目详情（查看）`mtop.damai.item.detail.getdetail`
 
 | 项 | 值 |
 | --- | --- |
 | 类 | `ProjectNewDetailRequest` / `ProjectItemDetailRequest` |
 | v | `1.0`（旧路径另有 `1.2` / `mtop.alibaba.damai.detail.getdetail`） |
 | NEED_ECODE / SESSION | false / false |
+| Body 加密 | 无 |
+| 用途 | **查看**项目/场次/票档入口 |
+
+**请求头：** 网关公共头 §10.0.2；可不登录（部分场次信息可能受限）。
 
 **data 字段：**
 
@@ -1093,12 +1201,57 @@ data={"userCode":"<uid>","from":"<from>","v":"1.0","timestamp":"1710000000","sig
 
 ```http
 POST https://mtop.damai.cn/gw/mtop.damai.item.detail.getdetail/1.0/ HTTP/1.1
+Host: mtop.damai.cn
 Content-Type: application/x-www-form-urlencoded;charset=UTF-8
+x-appkey: <appKey>
+x-t: <ts>
+x-sign: <SecurityGuard>
+x-utdid: <utdid>
 
 data={"itemId":"720000000000","version":"1.0"}&type=originaljson
 ```
 
-**响应：** 反序列化为 `ProjectDetailNewBean` / `ProjectDetailItemResultDataBean`（场次、票档、是否选座等，结构庞大，以抓包 `data` 为准）。
+**响应：** `ProjectDetailNewBean` / `ProjectDetailItemResultDataBean`（场次、票档、是否选座等，结构大，以抓包 `data` 为准）。  
+**调用链：** `ProjectDetailActivity` → `ProjectNewDetailRequest` → 选座/下单。
+
+---
+
+### 10.4b 订单详情（查看）`mtop.damai.wireless.order.orderdetail`
+
+| 项 | 值 |
+| --- | --- |
+| 类 | `cn.damai.trade.newtradeorder.ui.orderdetail.net.OrderDetailRequest` |
+| API | `mtop.damai.wireless.order.orderdetail`（常量 `OrderDetailConstantsApi.API_ORDER_DETAIL`） |
+| v | **`2.0`** |
+| NEED_ECODE / SESSION | **true / true** |
+| Body 加密 | 无 |
+| 用途 | **查看**已创建订单 |
+
+**data 字段：**
+
+| 字段 | 说明 |
+| --- | --- |
+| `orderId` | 订单号 |
+| `sVersion` | 默认 `"2"` |
+| `checkInvoiceResult` | bool |
+| `checkModifyResult` | bool |
+
+```http
+POST https://mtop.damai.cn/gw/mtop.damai.wireless.order.orderdetail/2.0/ HTTP/1.1
+Host: mtop.damai.cn
+Content-Type: application/x-www-form-urlencoded;charset=UTF-8
+Cookie: <登录态>
+x-appkey: <appKey>
+x-t: <ts>
+x-sign: <SecurityGuard>
+x-sid: <sid>
+x-uid: <uid>
+
+data={"orderId":"1234567890123","sVersion":"2","checkInvoiceResult":false,"checkModifyResult":false}&type=originaljson
+```
+
+**响应：** `OrderDetailBean`（状态、票档、观演人、支付/配送等）。  
+**旁路：** 次级单 `mtop.damai.wireless.secondaryorde.orderdetail`（券包详情，字段 `orderId/sVersion/dmChannel`）。
 
 ---
 
@@ -1306,13 +1459,21 @@ data={"itemId":"720000000000","performId":"210000000","calculateTag":"<tag>","sk
 
 ```http
 POST https://mtop.damai.cn/gw/mtop.damai.trade.order.build/1.0/ HTTP/1.1
+Host: mtop.damai.cn
 Content-Type: application/x-www-form-urlencoded;charset=UTF-8
 Cookie: <登录态>
+x-appkey: <appKey>
+x-t: <ts>
+x-sign: <SecurityGuard>
+x-sid: <sid>
+x-uid: <uid>
+x-utdid: <utdid>
 
 data={"buyNow":"true","buyParam":"720000000000_2_80001","exParams":"{\"coupon\":\"true\",\"coVersion\":\"2.0\",\"websiteLanguage\":\"zh_CN\"}"}&type=originaljson
 ```
 
-**响应：** 奥创 Ultron 组件协议（确认页组件树），非简单 POJO；后续 `adjust`/`create` 依赖其中回传的 `params`。
+**加密与签名：** Body **明文**；网关 `x-sign` + 登录态；无业务 AES。  
+**响应：** 奥创 Ultron 组件协议（确认页组件树）；后续 `adjust`/`create` 依赖回传 `params`。
 
 ---
 
@@ -1327,40 +1488,65 @@ data={"buyNow":"true","buyParam":"720000000000_2_80001","exParams":"{\"coupon\":
 
 ```http
 POST https://mtop.damai.cn/gw/mtop.damai.trade.order.adjust/1.0/ HTTP/1.1
+Host: mtop.damai.cn
 Content-Type: application/x-www-form-urlencoded;charset=UTF-8
 Cookie: <登录态>
+x-sign: <SecurityGuard>
+x-sid: <sid>
 
 data={"feature":"{\"gzip\":\"true\"}","params":"<ultron-params-from-build>"}&type=originaljson
 ```
 
 ---
 
-### 10.13 创建订单 `mtop.damai.trade.order.create`
+### 10.13 创建订单（下单）`mtop.damai.trade.order.create`
 
 | 项 | 值 |
 | --- | --- |
-| 新 API | `mtop.damai.trade.order.create` v=`1.0` |
+| 新 API | `mtop.damai.trade.order.create` v=`1.0`（`UltronCreateOrder.API_NAME_ONLINE_NEW`） |
 | 旧 API | `mtop.trade.order.create` v=`4.0` |
+| 预发旧 | `mtop.trade.order.create.dmpre` |
+| NEED_SESSION | **是**（未登录 create 失败） |
+| Body 加密 | **无**（`params` 为 Ultron 协议串，可 gzip 标记） |
+| 网关签名 | **有** `x-sign`；常附 WUA |
 
 **data 关键键（`UltronCreateOrder`）：**
 
 | 字段 | 值/说明 |
 | --- | --- |
 | `params` | 确认页最终协议 |
-| `feature` | `{"gzip":"true","subChannel":"damai@tppnew_app"}` |
-| `gzip` | `"true"` |
-| `orderMarker` | `v:utdid=<utdid>`（`makeCreateOrderParams`） |
+| `feature` | `{"gzip":"true","subChannel":"damai@tppnew_app"}`（常量 `V_FEATURE`） |
+| `gzip` | `"true"`（`V_GZIP`） |
+| `orderMarker` | `v:utdid=<utdid>` |
 | `appGuide` | 可选 |
 
 ```http
 POST https://mtop.damai.cn/gw/mtop.damai.trade.order.create/1.0/ HTTP/1.1
+Host: mtop.damai.cn
 Content-Type: application/x-www-form-urlencoded;charset=UTF-8
 Cookie: <登录态>
+x-appkey: <appKey>
+x-t: <ts>
+x-sign: <SecurityGuard>
+x-sid: <sid>
+x-uid: <uid>
+x-utdid: <utdid>
+x-mini-wua: <WUA，若 SDK 开启>
 
 data={"params":"<ultron-params>","feature":"{\"gzip\":\"true\",\"subChannel\":\"damai@tppnew_app\"}","gzip":"true","orderMarker":"v:utdid=<utdid>"}&type=originaljson
 ```
 
-**响应（推断）：** 含 `orderId` / 支付跳转信息；再调支付参数接口。
+#### 加密与签名（下单）
+
+| 项 | 内容 |
+| --- | --- |
+| 业务 Body AES | **无** |
+| 密钥（业务层） | **不适用**（无业务加密） |
+| 网关 `x-sign` | SecurityGuard；密钥在 so，本 dump 无明文 |
+| 密文落点 | 无；`params` 明文（或网关层 gzip） |
+| 调用链 | `UltronPresenter` → build → adjust → **create** → `getpayparam` → 支付 |
+
+**响应（推断）：** 含 `orderId` / 支付跳转；再调 §10.14；查单见 §10.4b。
 
 ---
 
@@ -1371,13 +1557,17 @@ data={"params":"<ultron-params>","feature":"{\"gzip\":\"true\",\"subChannel\":\"
 | 类 | `OrderDetailWolfPayRequest` |
 | v | `2.0` |
 | NEED_ECODE / SESSION | **true / true** |
+| Body 加密 | 无 |
 
 **data：** `orderId`、`type`、`loginkey`（本地登录 key）、`pageurl`（默认 `http://m.damai.cn/orderlist.aspx`）
 
 ```http
 POST https://mtop.damai.cn/gw/mtop.damai.wireless.order.getpayparam/2.0/ HTTP/1.1
+Host: mtop.damai.cn
 Content-Type: application/x-www-form-urlencoded;charset=UTF-8
 Cookie: <登录态>
+x-sign: <SecurityGuard>
+x-sid: <sid>
 
 data={"orderId":"1234567890123","type":"1","loginkey":"<login-key>","pageurl":"http://m.damai.cn/orderlist.aspx"}&type=originaljson
 ```
@@ -1391,10 +1581,26 @@ data={"orderId":"1234567890123","type":"1","loginkey":"<login-key>","pageurl":"h
 | 场次 ID | `performanceId` | `performId` |
 | 购买串 | — | `buyParam` = `itemId_count_skuId` |
 | 渠道 | `dmChannel=*@damai_android_*` | 同左 / `subChannel=damai@tppnew_app` |
+| AccessToken 签名 key | — | `166432f6316846fab25e5c39e9e57d71` |
+| 查看项目 | `item.detail.getdetail` | — |
+| 查看订单 | `wireless.order.orderdetail` v=2.0 | — |
+
+### 10.16 登录 / 查看 / 下单速查（详细请求）
+
+| 场景 | API | v | Session | Body 加密 | 额外签名 |
+| --- | --- | --- | --- | --- | --- |
+| 登录 | `mtop.taobao.alibabaMLoginService.login` | 1.0 | 否 | 无 | 网关 x-sign |
+| Token | `mtop.damai.mxm.user.token.get` | 1.0 | 是 | 无 | 网关 x-sign |
+| AccessToken | `mtop.damai.mxm.user.accesstoken.get` | 1.0 | 否* | 无 | **data.sign + 硬编码 key** + x-sign |
+| 查看项目 | `mtop.damai.item.detail.getdetail` | 1.0 | 否 | 无 | x-sign |
+| 查看订单 | `mtop.damai.wireless.order.orderdetail` | 2.0 | 是 | 无 | x-sign |
+| 下单 | `mtop.damai.trade.order.create` | 1.0 | 是 | 无 | x-sign (+WUA) |
 
 ## 11. 数据来源与局限
 
 - 接口名与字段来自 Frida dump 的 Request/Bean **public 字段**，不等于线上必调或必传。
 - 响应壳为标准 MTOP：`api/v/ret/data`；业务体以类字段为准，未跟完的嵌套 Bean 需再抓包。
-- 签名、WUA、ecode 由 MTOP/安全 SDK 生成，本文不给出可复现签名算法。
-- 原始清单：`_extract.json` / `_mtop_damai.txt` / `_mtop_film.txt`；smali：`frida-smali/`。
+- **业务层：** 购票主链无 AES；唯一还原的业务密钥为 AccessToken 的 `166432f6316846fab25e5c39e9e57d71`。
+- **网关层：** `x-sign` / WUA / ecode 由 MTOP + `SecurityGuard` 生成；本 dump **无**完整 `mtopsdk` 实现与 so 明文密钥 → 标注「需抓包/hook」，不编造可复现算法。
+- 已搜关键字：`x-sign`、`encryptParameter`、`InnerSign`、`ProtocolParamBuilder`、`Cipher`（业务下单）、`toSignParamMap`、`SecurityGuardManagerWraper`。
+- 原始清单：`_extract.json` / `_mtop_damai.txt`；smali：`unpack-output/106/frida-smali/`。

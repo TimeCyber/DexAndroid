@@ -5,9 +5,17 @@ description: >-
   request/response bodies, headers, interceptors, encrypt/decrypt/sign methods,
   and key recovery (smali, .so, server-delivered). Use when the user asks for
   接口/API/下单/请求头/加密/密钥/smali analysis of an unpacked App.
+license: MIT
+compatibility: >-
+  Cursor (.cursor/skills), Codex (.agents/skills), Claude Code (.claude/skills);
+  DexAndroid MCP smali_* tools when available.
 ---
 
 # Android API Smali 完整分析
+
+> **Canonical source:** `skills/android-api-smali-analysis/SKILL.md`  
+> Synced copies: `.cursor/skills/` · `.agents/skills/` · `.claude/skills/`  
+> After editing the canonical file, run `node tools/sync-skills.mjs`.
 
 对脱壳后的 smali（或 APK）做**接口还原**时，禁止只报 path + body 字段。  
 若接口存在加解密 / 签名：**必须完整还原算法 + 调用链 + 实际密钥（或密钥材料）**，并写入文档；只写「密钥在 so / 服务端」而不给出可复现材料 = **未完成**。
@@ -160,6 +168,8 @@ secretKey|aesKey|encryptKey|publicKey|keyId|sessionKey|
 
 ## 推荐工具顺序（DexAndroid / MCP）
 
+优先使用本仓库 MCP（Cursor / Claude / Codex 已配置 `dex-android-unpack` 时）：
+
 1. `smali_search`：path、`Interceptor`、`encrypt`、`SecretKey`、`getString`
 2. `smali_list_classes`：`*ApiService*`、`*Interceptor*`、`*Encrypt*`、`Cipher*`
 3. `smali_read_class`：ApiService、Req/Res、Interceptor、加解密工具类
@@ -167,6 +177,8 @@ secretKey|aesKey|encryptKey|publicKey|keyId|sessionKey|
 5. 从 APK 解 so → 抽字符串 / REA 分析 /（授权下）Frida hook 打密钥
 6. 追踪「下发密钥」接口与本地缓存读写
 7. 汇总写入 API 文档
+
+无 MCP 时：在本地 `smali/` 目录用 ripgrep / 编辑器按相同关键字检索，步骤与验收标准不变。
 
 业务加解密关键字：
 
