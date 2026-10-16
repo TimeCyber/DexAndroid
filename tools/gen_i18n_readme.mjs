@@ -52,10 +52,6 @@ npm run build`;
 const startBash = `npm start
 # node dist/index.js`;
 
-const mockBash = `cd mock-client
-npm install
-npm start`;
-
 const smaliEx = `smali_list_classes  smaliDir=.../smali  keyword=login
 smali_search        smaliDir=.../smali  pattern=https?://|/api/|publicClient/
 smali_read_class    smaliDir=.../smali  className=com.example.api.ApiService`;
@@ -71,7 +67,6 @@ const tree = `DexAndroid/
 ├── examples/            # Damai / Huaxi sample smali.zip + docs
 ├── tools/               # baksmali / frida-server / BlackDex (local)
 ├── unpack-output/       # local dumps (gitignored)
-├── mock-client/
 ├── package.json
 └── README.md`;
 
@@ -1195,18 +1190,6 @@ ${t.examplesAfter}
 ## ${t.hTools}
 
 ${toolsTable}
-
----
-
-## ${t.hMock}
-
-${t.mockBody}
-
-\`\`\`bash
-${mockBash}
-\`\`\`
-
-${t.mockOpen}
 
 ---
 

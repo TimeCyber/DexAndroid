@@ -157,7 +157,6 @@ DexAndroid/
 ├── examples/            # Damai / Huaxi sample smali.zip + docs
 ├── tools/               # baksmali / frida-server / BlackDex (local)
 ├── unpack-output/       # local dumps (gitignored)
-├── mock-client/
 ├── package.json
 └── README.md
 ```
@@ -192,20 +191,6 @@ Setelah unzip, jalankan `smali_*`.
 | `smali_list_classes` | `smaliDir`, optional `keyword` |
 | `smali_read_class` | `smaliDir`, `className` |
 | `smali_search` | `smaliDir`, `pattern`, optional `flags` / `maxResults` |
-
----
-
-## Opsional: klien Mock
-
-`mock-client/` mendemo login → kursi → order **tanpa memanggil API produksi**. [mock-client/README.md](./mock-client/README.md)
-
-```bash
-cd mock-client
-npm install
-npm start
-```
-
-Buka `http://127.0.0.1:17806/`.
 
 ---
 

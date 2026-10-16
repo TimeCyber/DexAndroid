@@ -157,7 +157,6 @@ DexAndroid/
 ├── examples/            # Damai / Huaxi sample smali.zip + docs
 ├── tools/               # baksmali / frida-server / BlackDex (local)
 ├── unpack-output/       # local dumps (gitignored)
-├── mock-client/
 ├── package.json
 └── README.md
 ```
@@ -192,20 +191,6 @@ DexAndroid/
 | `smali_list_classes` | `smaliDir`, optional `keyword` |
 | `smali_read_class` | `smaliDir`, `className` |
 | `smali_search` | `smaliDir`, `pattern`, optional `flags` / `maxResults` |
-
----
-
-## वैकल्पिक: Mock क्लाइंट
-
-`mock-client/` लॉगिन → सीट → ऑर्डर का लोकल Mock है और **असली प्रोडक्शन API नहीं बुलाता**। [mock-client/README.md](./mock-client/README.md)
-
-```bash
-cd mock-client
-npm install
-npm start
-```
-
-`http://127.0.0.1:17806/` खोलें।
 
 ---
 

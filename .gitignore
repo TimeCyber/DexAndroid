@@ -1,6 +1,8 @@
 # Dependencies
 node_modules/
-mock-client/node_modules/
+
+# 本地 Mock 演示（不上传 GitHub）
+mock-client/
 
 # Build (可选：本地构建产物)
 # dist/

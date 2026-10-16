@@ -157,7 +157,6 @@ DexAndroid/
 ├── examples/            # Damai / Huaxi sample smali.zip + docs
 ├── tools/               # baksmali / frida-server / BlackDex (local)
 ├── unpack-output/       # local dumps (gitignored)
-├── mock-client/
 ├── package.json
 └── README.md
 ```
@@ -192,20 +191,6 @@ DexAndroid/
 | `smali_list_classes` | `smaliDir`, optional `keyword` |
 | `smali_read_class` | `smaliDir`, `className` |
 | `smali_search` | `smaliDir`, `pattern`, optional `flags` / `maxResults` |
-
----
-
-## 可选：Mock 演示客户端
-
-`mock-client/` 为独立小服务，演示「登录 → 选座 → 下单」本地 Mock，**不请求真实线上业务**。详见 [mock-client/README.md](./mock-client/README.md)。
-
-```bash
-cd mock-client
-npm install
-npm start
-```
-
-浏览器打开 `http://127.0.0.1:17806/`。
 
 ---
 
