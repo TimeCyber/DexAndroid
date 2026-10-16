@@ -1,0 +1,23 @@
+{
+  "name": "dex-android-unpack-mcp",
+  "version": "1.0.0",
+  "description": "Android 脱壳工具 + MCP server：支持静态解包、免 root(BlackDex 原理)、root(Frida 原理) 三种脱壳方式",
+  "type": "module",
+  "bin": {
+    "dex-android-mcp": "dist/index.js"
+  },
+  "scripts": {
+    "build": "tsc",
+    "start": "node dist/index.js",
+    "dev": "tsc && node dist/index.js"
+  },
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "^1.0.4",
+    "adm-zip": "^0.5.16"
+  },
+  "devDependencies": {
+    "@types/adm-zip": "^0.5.7",
+    "@types/node": "^22.10.0",
+    "typescript": "^5.7.2"
+  }
+}

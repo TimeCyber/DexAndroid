@@ -1,0 +1,43 @@
+# Dependencies
+node_modules/
+mock-client/node_modules/
+
+# Build (可选：本地构建产物)
+# dist/
+
+# Unpack / reverse-engineering artifacts (勿上传 APK 与 dump)
+unpack-output/
+*.apk
+*.dex
+*.so
+*.aab
+*.xapk
+
+# Local / IDE
+.cursor/
+.idea/
+.vscode/
+*.log
+*.tmp
+.DS_Store
+Thumbs.db
+
+# Secrets & env
+.env
+.env.*
+*.pem
+credentials.json
+
+# Large / binary tooling downloads (自行放到 tools/)
+tools/baksmali*.jar
+tools/smali*.jar
+tools/*.apk
+tools/frida-server*
+tools/BlackDex*
+tools/**/*.jar
+tools/**/*.exe
+
+# Python
+__pycache__/
+*.pyc
+.venv/
