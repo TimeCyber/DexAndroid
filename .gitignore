@@ -16,7 +16,9 @@ unpack-output/
 *.xapk
 
 # Local / IDE
-.cursor/
+.cursor/*
+!.cursor/skills/
+!.cursor/skills/**
 .idea/
 .vscode/
 *.log
