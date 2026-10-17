@@ -10,5 +10,8 @@
 | --- | --- | --- |
 | 大麦 | [`damai/`](./damai/) | Frida 脱壳后的 smali + 接口/选座文档 |
 | 华西妇幼 | [`huaxi/`](./huaxi/) | 静态解包后的 smali（挂号 / 排班相关可检索） |
+| MCP 自有 Demo | [`demo-hello/`](./demo-hello/) | 验证 `smali_patch` / `apk_repack`（弹窗「你好啊」） |
+
+> `huaxi` / `damai` 仅为分析样本，**不要**对其做入口改写或二次打包。工具联调请用 `demo-hello`。
 
 > 原始完整 dump、APK、dex 仍保留在本地 `unpack-output/`，默认不入库（体积大且含二进制）。

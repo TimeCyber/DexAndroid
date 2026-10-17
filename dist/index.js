@@ -10,6 +10,9 @@ import { staticUnpack, pullApkFromDevice } from "./unpack/static.js";
 import { fridaUnpack, fridaPrepare } from "./unpack/frida.js";
 import { blackdexPrepare, blackdexPull } from "./unpack/blackdex.js";
 import { dexToSmali, smaliListClasses, smaliReadClass, smaliSearch, } from "./smali.js";
+import { findAppEntry, formatAppEntry } from "./entry.js";
+import { apkDecode, apkRepack } from "./repack.js";
+import { smaliPatch, formatSmaliPatch } from "./smali_patch.js";
 const DEFAULT_OUT = process.env.DEX_OUT_DIR || join(process.cwd(), "unpack-output");
 const TOOLS = [
     {
@@ -168,6 +171,91 @@ const TOOLS = [
             },
         },
     },
+    {
+        name: "find_app_entry",
+        description: "定位应用入口（只读）：解析 MAIN/LAUNCHER Activity、Application 类名，并尽量给出对应 smali 路径与 onCreate 行号。不修改任何文件、不注入代码。",
+        inputSchema: {
+            type: "object",
+            properties: {
+                projectDir: {
+                    type: "string",
+                    description: "apktool 解码后的工程目录（含 AndroidManifest.xml / smali*）",
+                },
+                manifestPath: { type: "string", description: "已解码的 AndroidManifest.xml 路径" },
+                apkPath: {
+                    type: "string",
+                    description: "原始 APK（需本机 aapt/aapt2；仅能拿到 launchable-activity）",
+                },
+                smaliDir: {
+                    type: "string",
+                    description: "可选 smali 根目录，用于定位入口 Activity 的 onCreate",
+                },
+            },
+        },
+    },
+    {
+        name: "apk_decode",
+        description: "用 apktool 解码 APK 为可编辑工程目录（AndroidManifest.xml + smali/resources）。需 tools/apktool*.jar 或 PATH 中的 apktool。",
+        inputSchema: {
+            type: "object",
+            properties: {
+                apkPath: { type: "string", description: "本地 APK 路径" },
+                outDir: {
+                    type: "string",
+                    description: "输出工程目录，默认 unpack-output/apktool/<apk名>",
+                },
+            },
+            required: ["apkPath"],
+        },
+    },
+    {
+        name: "apk_repack",
+        description: "将 apktool 工程重新打包并对齐/签名，输出可安装 APK。通用 rebuild，不注入业务代码。默认使用 tools/debug.keystore（自动生成）。",
+        inputSchema: {
+            type: "object",
+            properties: {
+                projectDir: { type: "string", description: "apktool 工程目录" },
+                outApk: {
+                    type: "string",
+                    description: "输出签名 APK 路径，默认 unpack-output/repack/<名>-signed.apk",
+                },
+                keystore: { type: "string", description: "可选 keystore 路径" },
+                alias: { type: "string", description: "证书别名，默认 androiddebugkey" },
+                storepass: { type: "string", description: "keystore 密码，默认 android" },
+                keypass: { type: "string", description: "key 密码，默认同 storepass" },
+            },
+            required: ["projectDir"],
+        },
+    },
+    {
+        name: "smali_patch",
+        description: "通用修改 smali（学习/验证重打包）：可定位入口 Activity，按 mode 写入调用方提供的片段，或插入内置 Log 验证标记。不生成广告/外链模板。仅用于有权修改的自有或授权工程。",
+        inputSchema: {
+            type: "object",
+            properties: {
+                smaliPath: { type: "string", description: "直接指定 .smali 文件" },
+                projectDir: {
+                    type: "string",
+                    description: "apktool 工程；未传 smaliPath 时自动定位 MAIN/LAUNCHER",
+                },
+                className: { type: "string", description: "可选，指定类名（如 com.foo.MainActivity）" },
+                smaliDir: { type: "string" },
+                mode: {
+                    type: "string",
+                    description: "insert_verify_log | insert_after_onCreate_super | insert_at_line | replace",
+                },
+                content: {
+                    type: "string",
+                    description: "调用方提供的 smali 文本（insert_after_onCreate_super / insert_at_line / replace）",
+                },
+                find: { type: "string", description: "replace 模式的查找原文" },
+                line: { type: "number", description: "insert_at_line：在该行之后插入（1-based）" },
+                dryRun: { type: "boolean", description: "true=只预览不写盘" },
+                backup: { type: "boolean", description: "写盘前备份 .bak，默认 true" },
+            },
+            required: ["mode"],
+        },
+    },
 ];
 const server = new Server({ name: "dex-android-unpack-mcp", version: "1.0.0" }, { capabilities: { tools: {} } });
 server.setRequestHandler(ListToolsRequestSchema, async () => ({ tools: TOOLS }));
@@ -259,6 +347,57 @@ server.setRequestHandler(CallToolRequestSchema, async (req) => {
             case "blackdex_pull": {
                 const r = await blackdexPull(args.outDir || DEFAULT_OUT, args.serial, args.targetPkg);
                 return textResult(`已拉取到: ${r.pulledTo}\n--- 远端结构 ---\n${r.listing}`);
+            }
+            case "find_app_entry": {
+                if (!args.projectDir && !args.manifestPath && !args.apkPath) {
+                    throw new Error("请提供 projectDir、manifestPath 或 apkPath 之一。");
+                }
+                const info = await findAppEntry({
+                    projectDir: args.projectDir,
+                    manifestPath: args.manifestPath,
+                    apkPath: args.apkPath,
+                    smaliDir: args.smaliDir,
+                });
+                return textResult(formatAppEntry(info));
+            }
+            case "apk_decode": {
+                const r = await apkDecode(args.apkPath, args.outDir);
+                return textResult(`已解码\nAPK: ${r.apkPath}\n工程目录: ${r.projectDir}\n` +
+                    `下一步可用 find_app_entry(projectDir=...) 定位入口，或 apk_repack 重新打包。\n` +
+                    `--- apktool ---\n${r.log}`);
+            }
+            case "apk_repack": {
+                const r = await apkRepack({
+                    projectDir: args.projectDir,
+                    outApk: args.outApk,
+                    keystore: args.keystore,
+                    alias: args.alias,
+                    storepass: args.storepass,
+                    keypass: args.keypass,
+                });
+                return textResult(`重新打包完成\n工程: ${r.projectDir}\n未签名: ${r.unsignedApk}\n` +
+                    `已签名 APK: ${r.signedApk}\nkeystore: ${r.keystore}\n--- 日志 ---\n${r.log}`);
+            }
+            case "smali_patch": {
+                const mode = args.mode;
+                if (!mode)
+                    throw new Error("请提供 mode。");
+                if (!args.smaliPath && !args.projectDir && !args.className) {
+                    throw new Error("请提供 smaliPath 或 projectDir（可加 className）。");
+                }
+                const r = await smaliPatch({
+                    smaliPath: args.smaliPath,
+                    projectDir: args.projectDir,
+                    className: args.className,
+                    smaliDir: args.smaliDir,
+                    mode,
+                    content: args.content,
+                    find: args.find,
+                    line: args.line,
+                    dryRun: args.dryRun,
+                    backup: args.backup,
+                });
+                return textResult(formatSmaliPatch(r));
             }
             default:
                 throw new Error(`未知工具: ${name}`);

@@ -23,6 +23,8 @@ Repo: [https://github.com/TimeCyber/DexAndroid](https://github.com/TimeCyber/Dex
 | Root 脱壳 | `frida_prepare` / `frida_unpack` | 推送 frida-server + frida-dexdump |
 | 反编译 | `dex_to_smali` | baksmali 转 smali |
 | 分析 | `smali_list_classes` / `smali_read_class` / `smali_search` | 列类、读类、正则搜索 |
+| 入口定位 | `find_app_entry` | MAIN/LAUNCHER + smali onCreate（只读） |
+| 解码/重打包 | `apk_decode` / `apk_repack` | apktool 解码 + 重建签名 |
 
 ### 三种脱壳方案对比
 
@@ -208,6 +210,10 @@ DexAndroid/
 | `smali_list_classes` | `smaliDir`, optional `keyword` |
 | `smali_read_class` | `smaliDir`, `className` |
 | `smali_search` | `smaliDir`, `pattern`, optional `flags` / `maxResults` |
+| `find_app_entry` | `projectDir` / `manifestPath` / `apkPath`，可选 `smaliDir` |
+| `apk_decode` | `apkPath`，可选 `outDir` |
+| `apk_repack` | `projectDir`，可选 `outApk` / keystore 参数 |
+| `smali_patch` | `mode` + `smaliPath`/`projectDir`；自备 `content` 或 `insert_verify_log` |
 
 ---
 

@@ -23,6 +23,8 @@ Repo: [https://github.com/TimeCyber/DexAndroid](https://github.com/TimeCyber/Dex
 | Root unpack | `frida_prepare` / `frida_unpack` | frida-server + frida-dexdump |
 | Decompile | `dex_to_smali` | baksmali → smali |
 | Analyze | `smali_list_classes` / `smali_read_class` / `smali_search` | List / read / regex |
+| Entry locate | `find_app_entry` | MAIN/LAUNCHER + smali onCreate (read-only) |
+| Decode / rebuild | `apk_decode` / `apk_repack` | apktool decode + rebuild/sign |
 
 ### Unpacking methods
 
@@ -214,6 +216,10 @@ After unzip, run `smali_list_classes` / `smali_search` / `smali_read_class`.
 | `smali_list_classes` | `smaliDir`, optional `keyword` |
 | `smali_read_class` | `smaliDir`, `className` |
 | `smali_search` | `smaliDir`, `pattern`, optional `flags` / `maxResults` |
+| `find_app_entry` | `projectDir` / `manifestPath` / `apkPath`, optional `smaliDir`（只读定位入口） |
+| `apk_decode` | `apkPath`, optional `outDir`（apktool 解码） |
+| `apk_repack` | `projectDir`, optional `outApk` / keystore 参数（重建并签名） |
+| `smali_patch` | `mode` + `smaliPath`/`projectDir`；调用方 `content` 或 `insert_verify_log` |
 
 ---
 
