@@ -1,17 +1,49 @@
 {
-  "name": "dex-android-unpack-mcp",
+  "name": "android-decompile-mcp",
   "version": "1.0.0",
-  "description": "Android 脱壳工具 + MCP server：支持静态解包、免 root(BlackDex 原理)、root(Frida 原理) 三种脱壳方式",
+  "description": "Android reverse-engineering MCP Server — unpack hardened apps, decompile to smali, analyze APIs (Cursor / Claude / Codex)",
   "type": "module",
+  "main": "dist/index.js",
   "bin": {
-    "dex-android-mcp": "dist/index.js"
+    "android-decompile-mcp": "dist/index.js"
   },
+  "files": [
+    "dist"
+  ],
   "scripts": {
     "build": "tsc",
     "start": "node dist/index.js",
     "dev": "tsc && node dist/index.js",
-    "sync-skills": "node tools/sync-skills.mjs"
+    "sync-skills": "node tools/sync-skills.mjs",
+    "prepublishOnly": "npm run build"
   },
+  "engines": {
+    "node": ">=18"
+  },
+  "publishConfig": {
+    "access": "public"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/TimeCyber/DexAndroid.git"
+  },
+  "homepage": "https://github.com/TimeCyber/DexAndroid#readme",
+  "bugs": {
+    "url": "https://github.com/TimeCyber/DexAndroid/issues"
+  },
+  "keywords": [
+    "mcp",
+    "android",
+    "smali",
+    "apk",
+    "unpack",
+    "frida",
+    "blackdex",
+    "reverse-engineering",
+    "cursor"
+  ],
+  "author": "TimeCyber",
+  "license": "MIT",
   "dependencies": {
     "@modelcontextprotocol/sdk": "^1.0.4",
     "adm-zip": "^0.5.16"

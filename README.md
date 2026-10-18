@@ -6,7 +6,38 @@
 
 Android unpacking + smali analysis **MCP Server**. Use from Cursor / Codex / Claude Code to manage devices, detect packers, unpack (static / BlackDex / Frida), convert dex→smali, and search API strings.
 
-Repo: [https://github.com/TimeCyber/DexAndroid](https://github.com/TimeCyber/DexAndroid)
+Repo: [https://github.com/TimeCyber/DexAndroid](https://github.com/TimeCyber/DexAndroid) · npm: [android-decompile-mcp](https://www.npmjs.com/package/android-decompile-mcp)
+
+---
+
+## Quick start (npm + MCP)
+
+**1. No clone — download & run from npm:**
+
+```bash
+npx -y android-decompile-mcp
+```
+
+**2. Load into Cursor / Claude / Codex — paste into `.cursor/mcp.json` (or global MCP config):**
+
+```json
+{
+  "mcpServers": {
+    "android-decompile-mcp": {
+      "command": "npx",
+      "args": ["-y", "android-decompile-mcp"],
+      "env": {
+        "ADB_PATH": "adb",
+        "DEX_OUT_DIR": "./unpack-output"
+      }
+    }
+  }
+}
+```
+
+Save → restart the client / reload MCP. Done.
+
+Optional global install: `npm i -g android-decompile-mcp` then run `android-decompile-mcp`.
 
 ---
 
@@ -48,50 +79,15 @@ Place baksmali fat jar / frida-server / BlackDex under local `tools/` (large bin
 
 ---
 
-## Install & build
+## Local development build
 
 ```bash
 git clone https://github.com/TimeCyber/DexAndroid.git
 cd DexAndroid
 npm install
 npm run build
-```
-
-Start MCP (stdio):
-
-```bash
 npm start
-# node dist/index.js
 ```
-
-Dev mode:
-
-```bash
-npm run dev
-```
-
----
-
-## Cursor MCP setup
-
-Add to `.cursor/mcp.json` or global MCP config (**change paths to your machine**):
-
-```json
-{
-  "mcpServers": {
-    "dex-android-unpack": {
-      "command": "node",
-      "args": ["E:/DexAndroid/dist/index.js"],
-      "env": {
-        "ADB_PATH": "E:/Android/Sdk/platform-tools/adb.exe",
-        "DEX_OUT_DIR": "E:/DexAndroid/unpack-output"
-      }
-    }
-  }
-}
-```
-
-Restart Cursor / reload MCP. Example prompts: list devices & detect packer; static_unpack a local apk, then dex_to_smali and search login APIs.
 
 ---
 

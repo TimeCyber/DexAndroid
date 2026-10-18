@@ -6,7 +6,38 @@
 
 安卓脱壳 + smali 分析 **MCP Server**。在 Cursor / Claude 等客户端中通过工具调用完成：设备管理、加固检测、静态/免 Root/Root 脱壳、dex→smali、接口字符串检索。
 
-Repo: [https://github.com/TimeCyber/DexAndroid](https://github.com/TimeCyber/DexAndroid)
+Repo: [https://github.com/TimeCyber/DexAndroid](https://github.com/TimeCyber/DexAndroid) · npm: [android-decompile-mcp](https://www.npmjs.com/package/android-decompile-mcp)
+
+---
+
+## 快速开始（npm + MCP）
+
+**1. 无需 clone，从 npm 下载并启动：**
+
+```bash
+npx -y android-decompile-mcp
+```
+
+**2. 快速接入 Cursor / Claude / Codex —— 粘贴到 `.cursor/mcp.json`（或全局 MCP 配置）：**
+
+```json
+{
+  "mcpServers": {
+    "android-decompile-mcp": {
+      "command": "npx",
+      "args": ["-y", "android-decompile-mcp"],
+      "env": {
+        "ADB_PATH": "adb",
+        "DEX_OUT_DIR": "./unpack-output"
+      }
+    }
+  }
+}
+```
+
+保存后重启客户端 / 重载 MCP 即可。
+
+可选全局安装：`npm i -g android-decompile-mcp`，然后执行 `android-decompile-mcp`。
 
 ---
 
@@ -48,50 +79,15 @@ Repo: [https://github.com/TimeCyber/DexAndroid](https://github.com/TimeCyber/Dex
 
 ---
 
-## 安装与构建
+## 本地开发构建
 
 ```bash
 git clone https://github.com/TimeCyber/DexAndroid.git
 cd DexAndroid
 npm install
 npm run build
-```
-
-启动 MCP（stdio，供客户端拉起）:
-
-```bash
 npm start
-# node dist/index.js
 ```
-
-开发模式（先编译再启动）:
-
-```bash
-npm run dev
-```
-
----
-
-## 接入 Cursor（MCP）
-
-在项目 `.cursor/mcp.json` 或 Cursor 全局 MCP 配置中增加（**路径改成你的本机目录**）：
-
-```json
-{
-  "mcpServers": {
-    "dex-android-unpack": {
-      "command": "node",
-      "args": ["E:/DexAndroid/dist/index.js"],
-      "env": {
-        "ADB_PATH": "E:/Android/Sdk/platform-tools/adb.exe",
-        "DEX_OUT_DIR": "E:/DexAndroid/unpack-output"
-      }
-    }
-  }
-}
-```
-
-保存后重启 Cursor / 重载 MCP。例如：「列出设备并检测加固」「对本地 apk 做 static_unpack，再 dex_to_smali，搜索登录接口」。
 
 ---
 

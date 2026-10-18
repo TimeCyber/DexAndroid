@@ -257,7 +257,7 @@ const TOOLS = [
         },
     },
 ];
-const server = new Server({ name: "dex-android-unpack-mcp", version: "1.0.0" }, { capabilities: { tools: {} } });
+const server = new Server({ name: "android-decompile-mcp", version: "1.0.0" }, { capabilities: { tools: {} } });
 server.setRequestHandler(ListToolsRequestSchema, async () => ({ tools: TOOLS }));
 server.setRequestHandler(CallToolRequestSchema, async (req) => {
     const { name } = req.params;
@@ -411,7 +411,7 @@ async function main() {
     const transport = new StdioServerTransport();
     await server.connect(transport);
     // stderr 打印，避免污染 stdio 协议通道
-    console.error("[dex-android-unpack-mcp] MCP server 已启动 (stdio)");
+    console.error("[android-decompile-mcp] MCP server 已启动 (stdio)");
 }
 main().catch((e) => {
     console.error("启动失败:", e);
